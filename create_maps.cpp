@@ -3,9 +3,11 @@
 #include <cstdlib>
 #include <vector>
 #include <cmath>
+#include <random>
+#include <ctime>
 
 int num_cities = 3;
-int prec_dim = 50; //dimension n
+int prec_dim = 10; //dimension n
 float percent_dem = .8;
 float percent_decrease = .5;
 
@@ -15,15 +17,21 @@ struct Precinct
 	int district;
 };
 
-int dist_from_city(int i, int j, std::vector< std::vector<int> > city_locations) {
+int dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
 	int distance = 0;
-	for(int i = 0; i<city_locations.size(); i++) {
-		distance += sqrt(pow((i-city_locations[i][0]), 2) + pow(j-city_locations[i][1], 2));
+	for(int i = 0; i<num_cities; i++) {
+		distance += sqrt(pow((x-city_locations[i][0]), 2) + pow(y-city_locations[i][1], 2));
+		//std::cout << distance << '\t';
 	}
-	return distance;
+	//std::cout << distance << '\n';
+	return pow(distance, .75);
 }
 
 int main(int argc, char *argv[]) {
+	std::random_device random;
+	std::mt19937 generator(random());
+	std::uniform_int_distribution<> city_dim(0, prec_dim);
+
 	/*
 	 * NxN array of precincts
 	 * randomly choose C cities (location precinct, precinct) to be P percent democratic
@@ -36,15 +44,19 @@ int main(int argc, char *argv[]) {
 	std::vector< std::vector<int> > city_locations;
 
 	for(int i = 0; i<num_cities; i++){
-		static std::vector<int> city = {static_cast<int>(rand() * prec_dim), static_cast<int>(rand() * prec_dim)};
+		std::vector<int> city = {city_dim(generator), city_dim(generator)};
 		city_locations.push_back(city);
+		//std::cout << city[0] << " " << city[1] << '\n';
 	}
 
 	for(int i = 0; i<prec_dim; i++) {
 		for(int j = 0; j<prec_dim; j++) {
 			static Precinct tmp_precinct;
-			tmp_precinct.percent_democratic = percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations));
+			tmp_precinct.percent_democratic = 100 *percent_dem  * pow(percent_decrease, dist_from_city(i, j, city_locations));
 			precincts[i].push_back(tmp_precinct);
+			std::cout << precincts[i][j].percent_democratic << '\t';
+			if(j == prec_dim - 1)
+				std::cout << '\n';
 		}
 	}
 }
