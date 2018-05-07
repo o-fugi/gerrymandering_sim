@@ -8,8 +8,9 @@
 
 int num_cities = 3;
 int prec_dim = 10; //dimension n
-float percent_dem = .8;
-float percent_decrease = .5;
+float percent_dem = .6;
+float percent_decrease = .6;
+float dist_factor = 0.8;
 
 struct Precinct
 {
@@ -17,14 +18,15 @@ struct Precinct
 	int district;
 };
 
-int dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
-	int distance = 0;
+float dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
+	float distance = 0;
 	for(int i = 0; i<num_cities; i++) {
 		distance += sqrt(pow((x-city_locations[i][0]), 2) + pow(y-city_locations[i][1], 2));
 		//std::cout << distance << '\t';
 	}
+	distance = pow(distance, dist_factor);
 	//std::cout << distance << '\n';
-	return pow(distance, .75);
+	return distance;
 }
 
 int main(int argc, char *argv[]) {
@@ -49,10 +51,12 @@ int main(int argc, char *argv[]) {
 		//std::cout << city[0] << " " << city[1] << '\n';
 	}
 
+	float tmp_percent;
 	for(int i = 0; i<prec_dim; i++) {
 		for(int j = 0; j<prec_dim; j++) {
 			static Precinct tmp_precinct;
-			tmp_precinct.percent_democratic = 100 *percent_dem  * pow(percent_decrease, dist_from_city(i, j, city_locations));
+			tmp_percent = 100 * percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations));
+			tmp_precinct.percent_democratic = ((tmp_percent<=percent_dem) ? tmp_percent : percent_dem);
 			precincts[i].push_back(tmp_precinct);
 			std::cout << precincts[i][j].percent_democratic << '\t';
 			if(j == prec_dim - 1)
