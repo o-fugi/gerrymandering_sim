@@ -8,12 +8,12 @@
 #define MIN(a, b) ((a<b) ? a : b)
 #define COERCE(a, min, max) ((a<min) ? min : ((a>max) ? max : a))
 
-int num_cities = 7;
-float prec_dim = 144.0; //dimension n
+int num_cities = 3;
+float prec_dim = 9.0; //dimension n
 float percent_dem = .6;
 float percent_decrease = .9;
 float dist_factor = 0.8;
-int district_dim = 12; //district_dim ^ 2 = number of districts
+int district_dim = 3; //district_dim ^ 2 = number of districts
 
 struct Precinct
 {
@@ -61,6 +61,9 @@ int main(int argc, char *argv[]) {
 	precincts.resize(prec_dim);
 	std::vector< std::vector<int> > city_locations;
 
+	std::ofstream file;
+	file.open ("distribution.txt");
+
 	//std::vector<int> test_city = {2, 8};
 	//city_locations.push_back(test_city);
 
@@ -79,9 +82,9 @@ int main(int argc, char *argv[]) {
 			static Precinct tmp_precinct;
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations)), 0, percent_dem);
 			precincts[i].push_back(tmp_precinct);
-			std::cout << 100* precincts[i][j].percent_democratic << '\t';
-			if(j == prec_dim - 1)
-				std::cout << '\n';
+			file << precincts[i][j].percent_democratic << '\n';
+			//if(j == prec_dim - 1)
+			//	std::cout << '\n';
 		}
 	}
 
