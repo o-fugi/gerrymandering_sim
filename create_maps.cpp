@@ -5,12 +5,15 @@
 #include <cmath>
 #include <random>
 #include <ctime>
+#define MIN(a, b) ((a<b) ? a : b)
+#define COERCE(a, min, max) ((a<min) ? min : ((a>max) ? max : a))
 
 int num_cities = 3;
-int prec_dim = 10; //dimension n
+int prec_dim = 9; //dimension n
 float percent_dem = .6;
 float percent_decrease = .9;
 float dist_factor = 0.8;
+int district_dim = 3; //district_dim ^ 2 = number of districts
 
 struct Precinct
 {
@@ -21,14 +24,16 @@ struct Precinct
 float dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
 	float distance = sqrt(pow((x-city_locations[0][0]), 2) + pow(y-city_locations[0][1], 2));
 	for(int i = 1; i<num_cities; i++) {
-		float next_dist = sqrt(pow((x-city_locations[i][0]), 2) + pow(y-city_locations[i][1], 2));
-		if (distance > next_dist)
-			distance = next_dist;
+		distance = MIN(distance, sqrt(pow((x-city_locations[i][0]), 2) + pow(y-city_locations[i][1], 2)));
 	}
 	distance = pow(distance, dist_factor);
 	//std::cout << distance << '\n';
 	return distance;
 }
+
+void assign_districts(std::vector< std::vector<Precinct> > &precincts, int x, int y) {
+	//this cycles through every possible arrangement of square districts. print to a bunch of files for python use?
+}	
 
 int main(int argc, char *argv[]) {
 	std::random_device random;
@@ -52,16 +57,20 @@ int main(int argc, char *argv[]) {
 		//std::cout << city[0] << " " << city[1] << '\n';
 	}
 
-	float tmp_percent;
 	for(int i = 0; i<prec_dim; i++) {
 		for(int j = 0; j<prec_dim; j++) {
 			static Precinct tmp_precinct;
-			tmp_percent = percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations));
-			tmp_precinct.percent_democratic = ((tmp_percent<=percent_dem) ? tmp_percent : percent_dem);
+			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations)), 0, percent_dem);
 			precincts[i].push_back(tmp_precinct);
 			std::cout << precincts[i][j].percent_democratic << '\t';
 			if(j == prec_dim - 1)
 				std::cout << '\n';
+		}
+	}
+
+	for(int x = 0; x<prec_dim/district_dim; x++){
+		for(int y = 0; y<prec_dim/district_dim; y++) {
+			assign_districts(precincts, x, y);
 		}
 	}
 }
