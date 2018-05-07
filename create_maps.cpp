@@ -8,12 +8,12 @@
 #define MIN(a, b) ((a<b) ? a : b)
 #define COERCE(a, min, max) ((a<min) ? min : ((a>max) ? max : a))
 
-int num_cities = 3;
-int prec_dim = 9; //dimension n
+int num_cities = 7;
+float prec_dim = 144.0; //dimension n
 float percent_dem = .6;
 float percent_decrease = .9;
 float dist_factor = 0.8;
-int district_dim = 3; //district_dim ^ 2 = number of districts
+int district_dim = 12; //district_dim ^ 2 = number of districts
 
 struct Precinct
 {
@@ -21,10 +21,16 @@ struct Precinct
 	int district;
 };
 
+//this is so that the state wraps around itself
+float norm(float diff) {
+	return diff;
+	//return (diff>prec_dim/2) ? prec_dim-diff : diff;
+}
+
 float dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
 	float distance = sqrt(pow((x-city_locations[0][0]), 2) + pow(y-city_locations[0][1], 2));
 	for(int i = 1; i<num_cities; i++) {
-		distance = MIN(distance, sqrt(pow((x-city_locations[i][0]), 2) + pow(y-city_locations[i][1], 2)));
+		distance = MIN(distance, sqrt(pow(norm(x-city_locations[i][0]), 2) + pow(norm(y-city_locations[i][1]), 2)));
 	}
 	distance = pow(distance, dist_factor);
 	//std::cout << distance << '\n';
@@ -32,13 +38,17 @@ float dist_from_city(int x, int y, std::vector< std::vector<int> > city_location
 }
 
 void assign_districts(std::vector< std::vector<Precinct> > &precincts, int x, int y) {
-	//this cycles through every possible arrangement of square districts. print to a bunch of files for python use?
+	//for every district within this mapping, assign
+	//for(int i = 0; i < prec_dim; i++) {
+	//	for(int j = 0; j < prec_dim; j++) {
+	//		precinct[i][j].district = floor(x/i) + 3*(1-floor(y
 }	
 
 int main(int argc, char *argv[]) {
+	//note to self: j is horizontal and i is vertical!
 	std::random_device random;
 	std::mt19937 generator(random());
-	std::uniform_int_distribution<> city_dim(0, prec_dim);
+	std::uniform_int_distribution<> city_dim(0, prec_dim - 1);
 
 	/*
 	 * NxN array of precincts
@@ -51,10 +61,17 @@ int main(int argc, char *argv[]) {
 	precincts.resize(prec_dim);
 	std::vector< std::vector<int> > city_locations;
 
+	//std::vector<int> test_city = {2, 8};
+	//city_locations.push_back(test_city);
+
 	for(int i = 0; i<num_cities; i++){
 		std::vector<int> city = {city_dim(generator), city_dim(generator)};
 		city_locations.push_back(city);
 		//std::cout << city[0] << " " << city[1] << '\n';
+	}
+
+	for(int i = 0; i<3; i++) {
+		std::cout << city_locations[i][0] << " " << city_locations[i][1] << '\n';
 	}
 
 	for(int i = 0; i<prec_dim; i++) {
@@ -62,12 +79,13 @@ int main(int argc, char *argv[]) {
 			static Precinct tmp_precinct;
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, dist_from_city(i, j, city_locations)), 0, percent_dem);
 			precincts[i].push_back(tmp_precinct);
-			std::cout << precincts[i][j].percent_democratic << '\t';
+			std::cout << 100* precincts[i][j].percent_democratic << '\t';
 			if(j == prec_dim - 1)
 				std::cout << '\n';
 		}
 	}
 
+	//for every possible assigning of districts
 	for(int x = 0; x<prec_dim/district_dim; x++){
 		for(int y = 0; y<prec_dim/district_dim; y++) {
 			assign_districts(precincts, x, y);
