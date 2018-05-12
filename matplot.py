@@ -1,19 +1,26 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import math as m
 
-percent_dem = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
-count = 0
+#Input filename
+filename = "distribution.txt"
 
-file = open("distribution.txt", 'r')
-for index, line in enumerate(file, 1):
-    percent_dem[count].append(float(line))
-    if index % 16 == 0 and index != 0:
-        count = count + 1
+#Automatically creates an square array based on number of lines
+#Will only work on files with perfect squares
+#Might want to include a check to see if there are a perfect square number of elements(but could slow the function down)
+def createarray(filename):
+    #Takes all the elements from a file and creates an array with one row and x number of columns based on new lines
+    arr = np.fromfile(filename, float,-1,"\r\n")
+    #Finds the square root of the number of elements in the array and makes that the dimension
+    square_dimension = int(m.sqrt(len(arr)))
+    #Reshapes the array based on the dimension decided
+    arr = np.reshape(arr,(square_dimension,square_dimension))
+    return arr
 
-for i in range(16):
-    print(percent_dem[i])
+#Runs the function and inputs array into a new variable
+percent_dem = createarray(filename)
 
-#a = np.random.random((16, 16))
+#Graphs the map
 plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
 plt.show()
 
