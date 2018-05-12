@@ -31,8 +31,6 @@ float dist_from_city(int x, int y, std::vector< std::vector<int> > city_location
 	float distance = 1000000000000;
 	for(int i = 0; i<num_cities; i++) {
 		distance = MIN(distance, sqrt(pow(norm(x-city_locations[i][0]), 2) + pow(norm(y - city_locations[i][1]), 2)));
-		if(x==0 && y==2)
-			std::cout << distance << '\n';
 	}
 	distance = pow(distance, dist_factor);
 	return distance;
@@ -68,13 +66,13 @@ int main(int argc, char *argv[]) {
 	//std::vector<int> test_city = {2, 8};
 	//city_locations.push_back(test_city);
 
-	//for(int i = 0; i<num_cities; i++){
-	//	std::vector<int> city = {city_dim(generator), city_dim(generator)};
-	//	city_locations.push_back(city);
+	for(int i = 0; i<num_cities; i++){
+		std::vector<int> city = {city_dim(generator), city_dim(generator)};
+		city_locations.push_back(city);
 		//std::cout << city[0] << " " << city[1] << '\n';
-	//}
+	}
 	
-	city_locations = {{7, 10}, {3, 6}, {15, 2}, {6, 6}};
+	//city_locations = {{7, 10}, {3, 6}, {15, 2}, {6, 6}};
 
 
 	for(int i = 0; i<3; i++) {
@@ -89,10 +87,10 @@ int main(int argc, char *argv[]) {
 			float factor = dist_from_city(i, j, city_locations);
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, factor), 0, percent_dem);
 			precincts[i].push_back(tmp_precinct);
-			//std::cout << 100* precincts[i][j].percent_democratic << '\t';
+			std::cout << 100* precincts[i][j].percent_democratic << '\t';
 			file << precincts[i][j].percent_democratic << '\n';
-			//if(j == prec_dim - 1)
-			//	std::cout << '\n';
+			if(j == prec_dim - 1)
+				std::cout << '\n';
 		}
 	}
 
