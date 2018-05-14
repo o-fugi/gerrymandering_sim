@@ -27,21 +27,48 @@ float norm(int diff) {
 	return diff;
 }
 
-float dist_from_city(int x, int y, std::vector< std::vector<int> > city_locations) {
+float dist_from_city(int y, int x, std::vector< std::vector<int> > city_locations) {
 	float distance = 1000000000000;
 	for(int i = 0; i<num_cities; i++) {
-		distance = MIN(distance, sqrt(pow(norm(x-city_locations[i][0]), 2) + pow(norm(y - city_locations[i][1]), 2)));
+		distance = MIN(distance, sqrt(pow(norm(x - city_locations[i][0]), 2) + pow(norm(y - city_locations[i][1]), 2)));
 	}
 	distance = pow(distance, dist_factor);
 	return distance;
 }
 
-void assign_districts(std::vector< std::vector<Precinct> > &precincts, int x, int y) {
+void assign_districts(std::vector< std::vector<Precinct> > &precincts, int y_point, int x_point, std::ofstream &file2) {
 	//for every district within this mapping, assign
-	//for(int i = 0; i < prec_dim; i++) {
-	//	for(int j = 0; j < prec_dim; j++) {
-	//		precinct[i][j].district = floor(x/i) + 3*(1-floor(y
-}	
+	/*
+	 * Cycle through every precinct. First, assign precincts to 1 until x is reached.
+	 * Then, assign precincts to 2 until x + district/precinct is reached. Then, assign precincts to 3 until x + district/precinct*2 is reached
+	 * When x + district/precinct*(count-1) is greater than precincts divided by districts, then it's 1 again.
+	 * Do basically the same thing for y, and multiply by three.
+	 * */
+	int x_count = 1;
+	int y_count = 1;
+	bool x_lapsed = false;
+	bool y_lapsed = false;
+	for(int y = 0; y < prec_dim; y++) {
+		x_count = 1;
+		x_lapsed = false;
+		if (y_point + prec_dim/district_dim * (y_count-1) <= y && !y_lapsed)
+			y_count++;
+		if (y_count > district_dim) {
+			y_count = 1;
+			y_lapsed = true;
+		}
+		for(int x = 0; x < prec_dim; x++) {
+			if (x_point + prec_dim/district_dim * (x_count-1) <= x && !x_lapsed)
+				x_count++;
+			if (x_count > district_dim) {
+				x_count = 1;
+				x_lapsed = true;
+			}
+			precincts[y][x].district = x_count + y_count*(prec_dim/district_dim - 1);
+			file2 << x_count + y_count*(prec_dim/district_dim - 1) << '\n';
+		}
+	}
+}
 
 int main(int argc, char *argv[]) {
 	//note to self: j is horizontal and i is vertical!
@@ -63,41 +90,33 @@ int main(int argc, char *argv[]) {
 	std::ofstream file;
 	file.open ("distribution.txt");
 
-	//std::vector<int> test_city = {2, 8};
-	//city_locations.push_back(test_city);
+	std::ofstream file2;
+	file2.open ("districts.txt");
 
-	for(int i = 0; i<num_cities; i++){
+	for(int num = 0; num<num_cities; num++){
 		std::vector<int> city = {city_dim(generator), city_dim(generator)};
 		city_locations.push_back(city);
-		//std::cout << city[0] << " " << city[1] << '\n';
+		std::cout << city_locations[num][0] << " " << city_locations[num][1] << '\n';
 	}
 	
-	//city_locations = {{7, 10}, {3, 6}, {15, 2}, {6, 6}};
 
-
-	for(int i = 0; i<3; i++) {
-		std::cout << city_locations[i][0] << " " << city_locations[i][1] << '\n';
-	}
-
-	for(int i = 0; i<prec_dim; i++) {
-		for(int j = 0; j<prec_dim; j++) {
+	for(int y = 0; y<prec_dim; y++) {
+		for(int x = 0; x<prec_dim; x++) {
 			static Precinct tmp_precinct;
-			if(i==0 && j==2)
-				std::cout << "we're here!";
-			float factor = dist_from_city(i, j, city_locations);
+			float factor = dist_from_city(y, x, city_locations);
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, factor), 0, percent_dem);
-			precincts[i].push_back(tmp_precinct);
-			std::cout << 100* precincts[i][j].percent_democratic << '\t';
-			file << precincts[i][j].percent_democratic << '\n';
-			if(j == prec_dim - 1)
+			precincts[y].push_back(tmp_precinct);
+			std::cout << 100* precincts[y][x].percent_democratic << '\t';
+			file << precincts[y][x].percent_democratic << '\n';
+			if(x == prec_dim - 1)
 				std::cout << '\n';
 		}
 	}
 
 	//for every possible assigning of districts
-	for(int x = 0; x<prec_dim/district_dim; x++){
-		for(int y = 0; y<prec_dim/district_dim; y++) {
-			assign_districts(precincts, x, y);
+	for(int y = 0; y<prec_dim/district_dim; y++){
+		for(int x = 0; x<prec_dim/district_dim; x++) {
+			assign_districts(precincts, y, x, file2);
 		}
 	}
 }
