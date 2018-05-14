@@ -47,4 +47,8 @@ for y in range(0, int(prec_dim/district_dim)):
 fig, ax = plt.subplots()
 ax.boxplot(data)
 
+fig, ax1 = plt.subplots()
+percent_dem = arr
+
+plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
 plt.show()
