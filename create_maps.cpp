@@ -8,12 +8,12 @@
 #define MIN(a, b) ((a<b) ? a : b)
 #define COERCE(a, min, max) ((a<min) ? min : ((a>max) ? max : a))
 
-int num_cities = 4;
-float prec_dim = 16.0; //dimension n
+int num_cities = 8;
+float prec_dim = 144.0; //dimension n
 float percent_dem = .6;
-float percent_decrease = .94;
+float percent_decrease = .96;
 float dist_factor = 0.8;
-int district_dim = 4; //district_dim ^ 2 = number of districts
+int district_dim = 12; //district_dim ^ 2 = number of districts
 
 struct Precinct
 {
@@ -71,17 +71,16 @@ void assign_districts(std::vector< std::vector<Precinct> > &precincts, int y_poi
 }
 
 int main(int argc, char *argv[]) {
-	//note to self: j is horizontal and i is vertical!
-	std::random_device random;
-	std::mt19937 generator(random());
-	std::uniform_int_distribution<> city_dim(0, prec_dim - 1);
-
 	/*
 	 * NxN array of precincts
 	 * randomly choose C cities (location precinct, precinct) to be P percent democratic
 	 * all cities bordering that will be M percent less democratic, beyond that M less democratic, etc, until all precincts are assigned a certain percentage democratic
 	 * then, districts -- assign each precinct to a district (another NxN array probably) and adjust
 	 */
+
+	std::random_device random;
+	std::mt19937 generator(random());
+	std::uniform_int_distribution<> city_dim(0, prec_dim - 1);
 
 	std::vector< std::vector<Precinct> > precincts;
 	precincts.resize(prec_dim);
@@ -90,15 +89,14 @@ int main(int argc, char *argv[]) {
 	std::ofstream file;
 	file.open ("distribution.txt");
 
-	std::ofstream file2;
-	file2.open ("districts.txt");
+	//debugging assign districts method
+	/*std::ofstream file2;
+	file2.open ("districts.txt");*/
 
 	for(int num = 0; num<num_cities; num++){
 		std::vector<int> city = {city_dim(generator), city_dim(generator)};
 		city_locations.push_back(city);
-		std::cout << city_locations[num][0] << " " << city_locations[num][1] << '\n';
 	}
-	
 
 	for(int y = 0; y<prec_dim; y++) {
 		for(int x = 0; x<prec_dim; x++) {
@@ -106,21 +104,18 @@ int main(int argc, char *argv[]) {
 			float factor = dist_from_city(y, x, city_locations);
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, factor), 0, percent_dem);
 			precincts[y].push_back(tmp_precinct);
-			/*if(y<8)
-				precincts[y][x].percent_democratic = 0;
-			else
-				precincts[y][x].percent_democratic = 1;*/
-			std::cout << 100* precincts[y][x].percent_democratic << '\t';
 			file << precincts[y][x].percent_democratic << '\n';
+			//debug
+			/*std::cout << 100* precincts[y][x].percent_democratic << '\t';
 			if(x == prec_dim - 1)
-				std::cout << '\n';
+				std::cout << '\n';*/
 		}
 	}
 
-	//for every possible assigning of districts
-	for(int y = 0; y<prec_dim/district_dim; y++){
+	//debugging assign districts method
+	/*for(int y = 0; y<prec_dim/district_dim; y++){
 		for(int x = 0; x<prec_dim/district_dim; x++) {
 			assign_districts(precincts, y, x, file2);
 		}
-	}
+	}*/
 }
