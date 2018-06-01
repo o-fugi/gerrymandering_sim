@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-district = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+district = [[]] * 16
 count = 0
 
 file = open("districts.txt", 'r')

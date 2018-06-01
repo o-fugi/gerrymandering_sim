@@ -11,7 +11,7 @@
 int num_cities = 4;
 float prec_dim = 16.0; //dimension n
 float percent_dem = .6;
-float percent_decrease = .9;
+float percent_decrease = .94;
 float dist_factor = 0.8;
 int district_dim = 4; //district_dim ^ 2 = number of districts
 
@@ -106,6 +106,10 @@ int main(int argc, char *argv[]) {
 			float factor = dist_from_city(y, x, city_locations);
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, factor), 0, percent_dem);
 			precincts[y].push_back(tmp_precinct);
+			/*if(y<8)
+				precincts[y][x].percent_democratic = 0;
+			else
+				precincts[y][x].percent_democratic = 1;*/
 			std::cout << 100* precincts[y][x].percent_democratic << '\t';
 			file << precincts[y][x].percent_democratic << '\n';
 			if(x == prec_dim - 1)
