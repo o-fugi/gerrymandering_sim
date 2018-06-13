@@ -10,9 +10,9 @@ prec_dim_y = 20
 district_dim_x = 4 #there are 4x4 districts
 district_dim_y = 5 #there are 4x4 districts
 
-def norm(diff, norm_value):
+def wrap(diff, wrap_value):
     if diff < 0:
-        diff = diff+norm_value
+        diff = diff+wrap_value
     return float(diff)
 
 def giveDistrict(acount, districting):
@@ -20,19 +20,36 @@ def giveDistrict(acount, districting):
     district_x = districting % (prec_dim_x / district_dim_x) #x-offset (how far from 0, 0 is district 1)
     district_y = m.floor(districting / (prec_dim_x/district_dim_x)) #y-offset
     
-    x_dim = m.floor(norm(acount%prec_dim_x - district_x, prec_dim_x) / prec_dim_x * district_dim_x)
-    y_dim = m.floor(norm(m.floor(acount/prec_dim_x) - district_y, prec_dim_y) / prec_dim_y * district_dim_y)
+    x_dim = m.floor(wrap(acount%prec_dim_x - district_x, prec_dim_x) / prec_dim_x * district_dim_x)
+    y_dim = m.floor(wrap(m.floor(acount/prec_dim_x) - district_y, prec_dim_y) / prec_dim_y * district_dim_y)
     if (y_dim < 0):
         print("%d, %d, %d, %d, %d" % (acount, prec_dim_x, district_y, prec_dim_y, district_dim_y))
 
     district = int(x_dim) + int(y_dim*(district_dim_x))
     return district #value from 0 to district_dim**2 - 1
+
+def distFromCity(y, x, city_locations):
+    distance = 1000000000000
+    for city in city_locations:
+	distance = min(distance, m.sqrt(m.pow(norm(x - city[0], 'x'), 2) + m.pow(norm(y-city[1], 'y'), 2)))
+    return distance
     
 if __name__ == '__main__':
     if(len(sys.argv) > 1):
         show = True
     else:
         show = False
+
+    city_locations = np.empty([num_cities, 2])
+    for city in city_locations:
+	city[0] = random.randint(0, prec_dim_x - 1)
+        city[1] = random.randint(0, prec_dim_y - 1)
+
+    percent_dem = np.empty([prec_dim_y, prec_dim_x])
+    for y, row in enumerate(percent_dem):
+        for x, column in enumerate(row):
+	     factor = distFromCity(y, x, city_locations)
+             percent_dem[y].push_back(factor)
 
     #Takes all the elements from a file and creates an array with one row and x number of columns based on new lines
     arr = np.fromfile(filename, float,-1,"\r\n")
