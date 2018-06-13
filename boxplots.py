@@ -41,13 +41,13 @@ if __name__ == '__main__':
     #Reshapes the array based on the dimension decided
     arr = np.reshape(arr,(prec_dim_y,prec_dim_x))
 
-    districting_averages = np.empty([prec_dim_x/district_dim_x*prec_dim_y/district_dim_y, district_dim_x*district_dim_y])  #one row for each districting, 16 districts in a districting
+    districting_averages = np.zeros([prec_dim_x/district_dim_x*prec_dim_y/district_dim_y, district_dim_x*district_dim_y])  #one row for each districting, 16 districts in a districting
 
     #proof of giveDistrict effectiveness
     if (show):
-        show_districts = np.empty([prec_dim_x*prec_dim_y, 1])
+        show_districts = np.zeros([prec_dim_x*prec_dim_y, 1])
 
-    medians = np.empty([district_dim_x*district_dim_y])
+    medians = np.zeros([district_dim_x*district_dim_y])
 
     #assign districting values
     for d, districting in enumerate(districting_averages): #for each possible districting...
