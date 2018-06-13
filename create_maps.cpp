@@ -9,11 +9,13 @@
 #define COERCE(a, min, max) ((a<min) ? min : ((a>max) ? max : a))
 
 int num_cities = 8;
-float prec_dim = 144.0; //dimension n
+float prec_dim_x = 16.0; //dimension n
+float prec_dim_y = 20.0; //dimension n
 float percent_dem = .6;
 float percent_decrease = .96;
 float dist_factor = 0.8;
-int district_dim = 12; //district_dim ^ 2 = number of districts
+int district_dim_x = 4;
+int district_dim_y = 4;
 
 struct Precinct
 {
@@ -22,20 +24,26 @@ struct Precinct
 };
 
 //this is so that the state wraps around itself
-float norm(int diff) {
-	diff = ((fabs(diff)>prec_dim/2) ? prec_dim - fabs(diff) : diff);
+float norm(int diff, char axis) {
+	if(axis=='x')
+		diff = ((fabs(diff)>prec_dim_x/2) ? prec_dim_x - fabs(diff) : diff);
+	else if(axis=='y')
+		diff = ((fabs(diff)>prec_dim_y/2) ? prec_dim_y - fabs(diff) : diff);
+	else
+		std::cout << "In function norm(int diff, char axis) axis must be x or y.";
 	return diff;
 }
 
 float dist_from_city(int y, int x, std::vector< std::vector<int> > city_locations) {
 	float distance = 1000000000000;
 	for(int i = 0; i<num_cities; i++) {
-		distance = MIN(distance, sqrt(pow(norm(x - city_locations[i][0]), 2) + pow(norm(y - city_locations[i][1]), 2)));
+		distance = MIN(distance, sqrt(pow(norm(x - city_locations[i][0], 'x'), 2) + pow(norm(y - city_locations[i][1], 'y'), 2)));
 	}
 	distance = pow(distance, dist_factor);
 	return distance;
 }
 
+#if 0
 void assign_districts(std::vector< std::vector<Precinct> > &precincts, int y_point, int x_point, std::ofstream &file2) {
 	//for every district within this mapping, assign
 	/*
@@ -69,6 +77,7 @@ void assign_districts(std::vector< std::vector<Precinct> > &precincts, int y_poi
 		}
 	}
 }
+#endif
 
 int main(int argc, char *argv[]) {
 	/*
@@ -80,10 +89,11 @@ int main(int argc, char *argv[]) {
 
 	std::random_device random;
 	std::mt19937 generator(random());
-	std::uniform_int_distribution<> city_dim(0, prec_dim - 1);
+	std::uniform_int_distribution<> city_dim_x(0, prec_dim_x - 1);
+	std::uniform_int_distribution<> city_dim_y(0, prec_dim_y - 1);
 
 	std::vector< std::vector<Precinct> > precincts;
-	precincts.resize(prec_dim);
+	precincts.resize(prec_dim_y);
 	std::vector< std::vector<int> > city_locations;
 
 	std::ofstream file;
@@ -94,21 +104,21 @@ int main(int argc, char *argv[]) {
 	file2.open ("districts.txt");*/
 
 	for(int num = 0; num<num_cities; num++){
-		std::vector<int> city = {city_dim(generator), city_dim(generator)};
+		std::vector<int> city = {city_dim_x(generator), city_dim_y(generator)};
 		city_locations.push_back(city);
 	}
 
-	for(int y = 0; y<prec_dim; y++) {
-		for(int x = 0; x<prec_dim; x++) {
+	for(int y = 0; y<prec_dim_y; y++) {
+		for(int x = 0; x<prec_dim_x; x++) {
 			static Precinct tmp_precinct;
 			float factor = dist_from_city(y, x, city_locations);
 			tmp_precinct.percent_democratic = COERCE(percent_dem * pow(percent_decrease, factor), 0, percent_dem);
 			precincts[y].push_back(tmp_precinct);
 			file << precincts[y][x].percent_democratic << '\n';
 			//debug
-			/*std::cout << 100* precincts[y][x].percent_democratic << '\t';
-			if(x == prec_dim - 1)
-				std::cout << '\n';*/
+			std::cout << 100* precincts[y][x].percent_democratic << '\t';
+			if(x == prec_dim_x - 1)
+				std::cout << '\n';
 		}
 	}
 
