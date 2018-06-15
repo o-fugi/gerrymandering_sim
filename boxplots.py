@@ -22,6 +22,7 @@ percent_dem = np.empty([prec_dim_y, prec_dim_x])
 # how fast can it get?
 # ** research on percent_decrease, num_cities, dist_factor, most_democratic **
 # regression
+# make compatible with python3
 
 def wrap(diff, wrap_value):
     if diff < 0:
@@ -50,7 +51,7 @@ def giveDistrict(acount, districting):
 def distFromCity(y, x, city_locations):
     distance = 1000000000000
     for city in city_locations:
-	distance = min(distance, m.sqrt(m.pow(norm(x - city[0], 'x'), 2) + m.pow(norm(y-city[1], 'y'), 2)))
+        distance = min(distance, m.sqrt(m.pow(norm(x - city[0], 'x'), 2) + m.pow(norm(y-city[1], 'y'), 2)))
     distance = m.pow(distance, dist_factor)
     return distance
 
@@ -79,7 +80,7 @@ def makeCityDistribution():
     print("generating the maps")
     city_locations = np.empty([num_cities, 2])
     for city in city_locations:
-	city[0] = random.randint(0, prec_dim_x - 1)
+        city[0] = random.randint(0, prec_dim_x - 1)
         city[1] = random.randint(0, prec_dim_y - 1)
 
     for y, row in enumerate(percent_dem):
@@ -105,7 +106,7 @@ def randomWithReplacement(arr):
     return arr
 
 def assignDistricts(percent_dem):
-    by_district_arr = np.zeros([district_dim_x*district_dim_y, prec_dim_x/district_dim_x*prec_dim_y/district_dim_y])
+    by_district_arr = np.zeros([int(district_dim_x*district_dim_y), int(prec_dim_x/district_dim_x*prec_dim_y/district_dim_y)])
     for num, district in enumerate(by_district_arr): 
         for d, districting in enumerate(district):
             x1 = int(d % (prec_dim_x/district_dim_x) + (num%district_dim_x)*(prec_dim_x/district_dim_x))
