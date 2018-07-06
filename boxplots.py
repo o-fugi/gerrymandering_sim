@@ -123,6 +123,8 @@ def makePlots(by_district_arr):
     ax.boxplot(np.transpose(by_district_arr))
 
     fig, ax1 = plt.subplots()
+    ax.set_xlabel("district")
+    ax.set_ylabel("percent Democratic")
 
     plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
     plt.show()
