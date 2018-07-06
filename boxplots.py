@@ -11,18 +11,19 @@ prec_dim_x = 16
 prec_dim_y = 20
 district_dim_x = 4 #there are 4x4 districts
 district_dim_y = 4 #there are 4x4 districts
-num_cities = 5
+num_cities = 4
 dist_factor = .7
 most_democratic = .6
-percent_decrease = .98
-percent_dem = np.empty([prec_dim_y, prec_dim_x])
+percent_decrease = .96
+weighted = False
+
+percent_dem = np.zeros([prec_dim_y, prec_dim_x])
+population = np.zeros([prec_dim_y, prec_dim_x])
 
 #TODO:  population density in urban areas
-# non-rectangular states
 # how fast can it get?
 # ** research on percent_decrease, num_cities, dist_factor, most_democratic **
 # regression
-# make compatible with python3
 
 def wrap(diff, wrap_value):
     if diff < 0:
@@ -82,11 +83,21 @@ def makeCityDistribution():
     for city in city_locations:
         city[0] = random.randint(0, prec_dim_x - 1)
         city[1] = random.randint(0, prec_dim_y - 1)
+    
+    # to keep city locations constant between runs, uncomment and change num_cities = 2
+    # city_locations[0][0] = 2
+    # city_locations[0][1] = 2
+    # city_locations[1][0] = 9
+    # city_locations[1][1] = 9
 
     for y, row in enumerate(percent_dem):
         for x, column in enumerate(row):
             factor = distFromCity(y, x, city_locations)
             row[x] = most_democratic * m.pow(percent_decrease, factor)
+            if factor < prec_dim_x*.1:
+                population[y][x] = 3000
+            else:
+                population[y][x] = 1000
 
     return percent_dem
 
@@ -113,7 +124,12 @@ def assignDistricts(percent_dem):
             x2 = int(x1 + prec_dim_x/district_dim_x)
             y1 = int(m.floor(d / (prec_dim_x/district_dim_x)) + m.floor(num/district_dim_y)*prec_dim_y/district_dim_y)
             y2 = int(y1 + prec_dim_y/district_dim_y)
-            district[d] = np.mean(np.take(np.take(percent_dem, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap'))
+            dist_box = np.take(np.take(percent_dem, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap')
+            population_box =  np.take(np.take(population, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap')
+            if (weighted):
+                district[d] = np.average(dist_box, weights=population_box)
+            else:
+                district[d] = np.average(dist_box)
     return by_district_arr
 
 def makePlots(by_district_arr):
@@ -122,10 +138,10 @@ def makePlots(by_district_arr):
     fig, ax = plt.subplots()
     ax.boxplot(np.transpose(by_district_arr))
 
-    fig, ax1 = plt.subplots()
     ax.set_xlabel("district")
     ax.set_ylabel("percent Democratic")
 
+    fig, ax1 = plt.subplots()
     plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
     plt.show()
 
@@ -134,13 +150,101 @@ if __name__ == '__main__':
         showDistricts()
 
     percent_dem = makeCityDistribution()
+    percent_dem_copy = percent_dem
     by_district_arr = assignDistricts(percent_dem)
-    makePlots(by_district_arr)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax = plt.subplots()
+    ax.boxplot(np.transpose(by_district_arr))
+
+    ax.set_title("Organized into Cities")
+    ax.set_xlabel("district")
+    ax.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
 
     percent_dem = randomWithoutReplacement(percent_dem)
     by_district_arr = assignDistricts(percent_dem)
-    makePlots(by_district_arr)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax1 = plt.subplots()
+    ax1.boxplot(np.transpose(by_district_arr))
+
+    ax1.set_title("Random Without Replacement")
+    ax1.set_xlabel("district")
+    ax1.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
 
     percent_dem = randomWithReplacement(percent_dem)
     by_district_arr = assignDistricts(percent_dem)
-    makePlots(by_district_arr)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax2 = plt.subplots()
+    ax2.boxplot(np.transpose(by_district_arr))
+
+    ax2.set_title("Random With Replacement")
+    ax2.set_xlabel("district")
+    ax2.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+    plt.show()
+
+    weighted = True
+
+    by_district_arr = assignDistricts(percent_dem_copy)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax = plt.subplots()
+    ax.boxplot(np.transpose(by_district_arr))
+
+    ax.set_title("Organized into Cities")
+    ax.set_xlabel("district")
+    ax.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    percent_dem_copy = randomWithoutReplacement(percent_dem_copy)
+    by_district_arr = assignDistricts(percent_dem_copy)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax1 = plt.subplots()
+    ax1.boxplot(np.transpose(by_district_arr))
+
+    ax1.set_title("Random Without Replacement")
+    ax1.set_xlabel("district")
+    ax1.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    percent_dem_copy = randomWithReplacement(percent_dem_copy)
+    by_district_arr = assignDistricts(percent_dem_copy)
+
+    #makePlots(by_district_arr)
+    by_district_arr = np.sort(by_district_arr, axis=0)
+    print("making the plots")
+    fig, ax2 = plt.subplots()
+    ax2.boxplot(np.transpose(by_district_arr))
+
+    ax2.set_title("Random With Replacement")
+    ax2.set_xlabel("district")
+    ax2.set_ylabel("percent Democratic")
+
+    #fig, ax1 = plt.subplots()
+    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+    plt.show()
