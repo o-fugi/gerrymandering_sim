@@ -11,16 +11,17 @@ prec_dim_x = 16
 prec_dim_y = 20
 district_dim_x = 4 #there are 4x4 districts
 district_dim_y = 4 #there are 4x4 districts
-num_cities = 4
+num_cities = 5
 dist_factor = .7
-most_democratic = .6
+most_democratic = .57
 percent_decrease = .96
-weighted = False
+weighted = False # not realistically able to be used
 
+#globals
 percent_dem = np.zeros([prec_dim_y, prec_dim_x])
 population = np.zeros([prec_dim_y, prec_dim_x])
 
-#TODO:  population density in urban areas
+#TODO:  population density in urban areas -- test with gradient instead of with city limits
 # how fast can it get?
 # ** research on percent_decrease, num_cities, dist_factor, most_democratic **
 # regression
@@ -77,8 +78,7 @@ def readFromFile():
     arr = np.reshape(arr,(prec_dim_y,prec_dim_x))
     percent_dem = arr
 
-def makeCityDistribution():
-    print("generating the maps")
+def makeCityDistribution(num_cities):
     city_locations = np.empty([num_cities, 2])
     for city in city_locations:
         city[0] = random.randint(0, prec_dim_x - 1)
@@ -99,6 +99,10 @@ def makeCityDistribution():
             else:
                 population[y][x] = 1000
 
+    # fig, ax = plt.subplots()
+    # plt.imshow(population, cmap='Greys', interpolation='nearest')
+    # plt.show()
+
     return percent_dem
 
 def randomWithoutReplacement(arr):
@@ -109,10 +113,9 @@ def randomWithoutReplacement(arr):
     return arr
 
 def randomWithReplacement(arr):
-    copy = np.reshape(arr, arr.size)
-    for row in arr:
-        for element in row:
-            element = np.random.choice(copy)
+    copy = arr.flat
+    for i, element in enumerate(arr.flat):
+        arr.flat[i] = np.random.choice(copy)
 
     return arr
 
@@ -148,14 +151,16 @@ def makePlots(by_district_arr):
 if __name__ == '__main__':
     if(len(sys.argv) > 1):
         showDistricts()
+        
+    ### ORGANIZED ###
 
-    percent_dem = makeCityDistribution()
+    percent_dem = makeCityDistribution(num_cities)
     percent_dem_copy = percent_dem
     by_district_arr = assignDistricts(percent_dem)
 
-    #makePlots(by_district_arr)
     by_district_arr = np.sort(by_district_arr, axis=0)
     print("making the plots")
+    organized_medians = [np.median(district) for district in by_district_arr]
     fig, ax = plt.subplots()
     ax.boxplot(np.transpose(by_district_arr))
 
@@ -165,13 +170,15 @@ if __name__ == '__main__':
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    ### RANDOM WITHOUT REPLACEMENT ###
 
     percent_dem = randomWithoutReplacement(percent_dem)
     by_district_arr = assignDistricts(percent_dem)
 
-    #makePlots(by_district_arr)
     by_district_arr = np.sort(by_district_arr, axis=0)
     print("making the plots")
+    wout_replacement_medians = [np.median(district) for district in by_district_arr]
     fig, ax1 = plt.subplots()
     ax1.boxplot(np.transpose(by_district_arr))
 
@@ -181,13 +188,15 @@ if __name__ == '__main__':
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    ### RANDOM WITH REPLACEMENT ###
 
     percent_dem = randomWithReplacement(percent_dem)
     by_district_arr = assignDistricts(percent_dem)
 
-    #makePlots(by_district_arr)
     by_district_arr = np.sort(by_district_arr, axis=0)
     print("making the plots")
+    w_replacement_medians = [np.median(district) for district in by_district_arr]
     fig, ax2 = plt.subplots()
     ax2.boxplot(np.transpose(by_district_arr))
 
@@ -197,54 +206,16 @@ if __name__ == '__main__':
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    diffs = [a-b for (a, b) in zip(w_replacement_medians, wout_replacement_medians)]
+    print(diffs)
+
+    variances = np.sum([(a-b)**2 for a, b in zip(organized_medians, wout_replacement_medians)])
+    print("organized and wout replacement: %f" % variances)
+    variances = np.sum([(a-b)**2 for a, b in zip(organized_medians, w_replacement_medians)])
+    print("organized and w replacement: %f" % variances)
+    variances = np.sum([(a-b)**2 for a, b in zip(w_replacement_medians, wout_replacement_medians)])
+    print("w and wout replacement: %f" % variances)
+
     plt.show()
 
-    weighted = True
-
-    by_district_arr = assignDistricts(percent_dem_copy)
-
-    #makePlots(by_district_arr)
-    by_district_arr = np.sort(by_district_arr, axis=0)
-    print("making the plots")
-    fig, ax = plt.subplots()
-    ax.boxplot(np.transpose(by_district_arr))
-
-    ax.set_title("Organized into Cities")
-    ax.set_xlabel("district")
-    ax.set_ylabel("percent Democratic")
-
-    #fig, ax1 = plt.subplots()
-    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
-
-    percent_dem_copy = randomWithoutReplacement(percent_dem_copy)
-    by_district_arr = assignDistricts(percent_dem_copy)
-
-    #makePlots(by_district_arr)
-    by_district_arr = np.sort(by_district_arr, axis=0)
-    print("making the plots")
-    fig, ax1 = plt.subplots()
-    ax1.boxplot(np.transpose(by_district_arr))
-
-    ax1.set_title("Random Without Replacement")
-    ax1.set_xlabel("district")
-    ax1.set_ylabel("percent Democratic")
-
-    #fig, ax1 = plt.subplots()
-    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
-
-    percent_dem_copy = randomWithReplacement(percent_dem_copy)
-    by_district_arr = assignDistricts(percent_dem_copy)
-
-    #makePlots(by_district_arr)
-    by_district_arr = np.sort(by_district_arr, axis=0)
-    print("making the plots")
-    fig, ax2 = plt.subplots()
-    ax2.boxplot(np.transpose(by_district_arr))
-
-    ax2.set_title("Random With Replacement")
-    ax2.set_xlabel("district")
-    ax2.set_ylabel("percent Democratic")
-
-    #fig, ax1 = plt.subplots()
-    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
-    plt.show()
