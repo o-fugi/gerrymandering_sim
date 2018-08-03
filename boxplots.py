@@ -7,8 +7,8 @@ import random
 
 #constants
 filename = 'distribution.txt'
-prec_dim_x = 16
-prec_dim_y = 20
+prec_dim_x = 4
+prec_dim_y = 4
 district_dim_x = 4 #there are 4x4 districts
 district_dim_y = 4 #there are 4x4 districts
 num_cities = 5
@@ -105,6 +105,62 @@ def makeCityDistribution(num_cities):
 
     return percent_dem
 
+def makeSeparatedDistribution(separate_value):
+    percent_dem = np.random.rand(prec_dim_y, prec_dim_x)
+    fig, ax1 = plt.subplots()
+    plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+    plt.show()
+
+    separated = False
+    temp_percent = 0
+    count = 0
+    means = []
+    avgs = []
+
+    while(!separated):
+        count += 1
+        city_generate = [[random.randint(0, prec_dim_y - 1), random.randint(0, prec_dim_x - 1)] for city in range(0, num_cities)]
+        for city in city_generate:
+            city_percent = percent_dem[city[0], city[1]]
+            dist_area = int(min(prec_dim_y, prec_dim_x) * abs(0.5-city_percent)) + 1
+            
+            for num in range(0, district_dim_x*district_dim_y): 
+                x1 = int((num%district_dim_x)*(prec_dim_x/district_dim_x))
+                y1 = int(m.floor(num/district_dim_y)*prec_dim_y/district_dim_y)
+                dist_box = np.take(np.roll(np.take(np.roll(percent_dem, y1, axis=1), range(0, dist_area), axis=1), x1, axis=0), range(0,dist_area), axis=0)
+                avgs.append(np.average(dist_box))
+
+            if city_percent > 0.5:
+                max_dist = avgs
+
+            """x1 = int(wrap(city[0] - 3, prec_dim_x))
+            x2 = int(wrap(city[0] + 3, prec_dim_x))
+            y1 = int(wrap(city[1] - 3, prec_dim_y))
+            y2 = int(wrap(city[1] + 3, prec_dim_y))
+            dist_box = np.take(np.roll(np.take(np.roll(percent_dem, y1, axis=1), range(0, 3), axis=1), x1, axis=0), range(0,3), axis=0)"""
+
+            # finds the precinct with closest value to its own and sticks onto that
+            diff = np.abs(dist_box-percent_dem[city[0], city[1]])
+            closest_idx = np.where(diff==diff.min())
+            temp_percent = percent_dem[closest_idx[0], int(wrap(closest_idx[1] + 1, prec_dim_y))]
+            percent_dem[closest_idx[0], int(wrap(closest_idx[1] + 1, prec_dim_y))] = percent_dem[city[0], city[1]]
+            percent_dem[city[0], city[1]] = temp_percent 
+
+        mean = np.mean(np.abs(percent_dem - np.roll(percent_dem, 1, axis=0)))
+        means.append(mean)
+        if(separated): #will soon become if something > separated_values
+            separated = True
+
+        if count % 400  == 0:
+            fig, ax = plt.subplots()
+            ax.plot(means)
+        if count % 50 == 0:
+            fig, ax1 = plt.subplots()
+            plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+            plt.show()
+
+    return percent_dem
+
 def randomWithoutReplacement(arr):
     arr = np.reshape(arr, arr.size)
     np.random.shuffle(arr)
@@ -127,7 +183,7 @@ def assignDistricts(percent_dem):
             x2 = int(x1 + prec_dim_x/district_dim_x)
             y1 = int(m.floor(d / (prec_dim_x/district_dim_x)) + m.floor(num/district_dim_y)*prec_dim_y/district_dim_y)
             y2 = int(y1 + prec_dim_y/district_dim_y)
-            dist_box = np.take(np.take(percent_dem, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap')
+            dist_box = np.take(np.take(percent_dem, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap') #this has a pretty serious error please fix
             population_box =  np.take(np.take(population, range(y1, y2), axis=0, mode='wrap'), range(x1, x2), axis=1, mode='wrap')
             if (weighted):
                 district[d] = np.average(dist_box, weights=population_box)
@@ -148,12 +204,7 @@ def makePlots(by_district_arr):
     plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
     plt.show()
 
-if __name__ == '__main__':
-    if(len(sys.argv) > 1):
-        showDistricts()
-        
-    ### ORGANIZED ###
-
+def showCities():
     percent_dem = makeCityDistribution(num_cities)
     percent_dem_copy = percent_dem
     by_district_arr = assignDistricts(percent_dem)
@@ -167,6 +218,7 @@ if __name__ == '__main__':
     ax.set_title("Organized into Cities")
     ax.set_xlabel("district")
     ax.set_ylabel("percent Democratic")
+    ax.axis([1, district_dim_x*district_dim_y, 0.48, 0.55])
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
@@ -185,6 +237,7 @@ if __name__ == '__main__':
     ax1.set_title("Random Without Replacement")
     ax1.set_xlabel("district")
     ax1.set_ylabel("percent Democratic")
+    ax1.axis([1, district_dim_x*district_dim_y, 0.48, 0.55])
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
@@ -203,9 +256,12 @@ if __name__ == '__main__':
     ax2.set_title("Random With Replacement")
     ax2.set_xlabel("district")
     ax2.set_ylabel("percent Democratic")
+    ax2.axis([1, district_dim_x*district_dim_y, 0.48, 0.55])
 
     #fig, ax1 = plt.subplots()
     #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+
+    ### BOXPLOT VARIANCES ###
 
     diffs = [a-b for (a, b) in zip(w_replacement_medians, wout_replacement_medians)]
     print(diffs)
@@ -219,3 +275,12 @@ if __name__ == '__main__':
 
     plt.show()
 
+
+if __name__ == '__main__':
+    if(len(sys.argv) > 1):
+        showDistricts()
+        
+    #showCities()
+
+    percent_dem = makeSeparatedDistribution(1)
+    print(percent_dem)

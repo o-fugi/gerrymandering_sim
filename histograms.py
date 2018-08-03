@@ -6,12 +6,13 @@ variances = []
 max_cities = 100
 
 if __name__ == "__main__":
-    fig, axes = plt.subplots(nrows=int(m.sqrt(100)), ncols=int(m.sqrt(100)))
+    fig, axes = plt.subplots(nrows=10, ncols=10)
     for num_cities, ax in enumerate(axes.flat):
+        print("num cities = %d" % num_cities)
         num_cities = num_cities + 1
         city_distribution = makeCityDistribution(num_cities)
         by_district_arr = assignDistricts(city_distribution)
-        ax.set_title("Normed, Number of Cities = %d" % num_cities)
+        ax.set_title("Number of Cities = %d" % num_cities)
         ax.axis([0.45, 0.55, 0, 100])
         n, bins, patches = ax.hist(by_district_arr.flat, bins=np.arange(.45, .55, .01))
         
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     axes2.plot(range(1, max_cities + 1), means)
     fig, ax = plt.subplots()
     ax.set_title("variances per city")
+    ax.axis([0, max_cities, 0, 0.0005])
     ax.plot(range(1, max_cities + 1), variances)
     plt.show()
 
