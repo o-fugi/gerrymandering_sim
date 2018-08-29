@@ -14,7 +14,7 @@ if __name__ == "__main__":
         by_district_arr = assignDistricts(city_distribution)
         ax.set_title("Number of Cities = %d" % num_cities)
         ax.axis([0.45, 0.55, 0, 100])
-        n, bins, patches = ax.hist(by_district_arr.flat, bins=np.arange(.45, .55, .01))
+        n, bins, patches = ax.hist(list(by_district_arr.flat), bins=np.arange(.45, .55, .01))
         
         mean = np.mean(by_district_arr.flat)
         variance = np.var(by_district_arr.flat)

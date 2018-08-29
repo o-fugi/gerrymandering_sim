@@ -1,11 +1,10 @@
 from boxplots import *
 
-num_cities = 100
+num_cities = 5
 target_mean = 0.5
 variances = []
 
 def adjustForMean(percent_dem, target_mean):
-    print(np.mean(percent_dem.flat))
     return percent_dem + target_mean - np.mean(percent_dem.flat)
 
 
