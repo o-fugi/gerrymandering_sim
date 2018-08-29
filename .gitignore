@@ -14,3 +14,4 @@ tags
 *.exe
 
 distribution.txt
+__pycache__
