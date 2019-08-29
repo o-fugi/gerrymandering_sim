@@ -78,7 +78,7 @@ def readFromFile():
     arr = np.reshape(arr,(prec_dim_y,prec_dim_x))
     percent_dem = arr
 
-def makeCityDistribution(num_cities, percent_decrease):
+def makeCityDistribution(num_cities):
     city_locations = np.empty([num_cities, 2])
     for city in city_locations:
         city[0] = random.randint(0, prec_dim_x - 1)
@@ -220,8 +220,8 @@ def showCities():
     ax.set_ylabel("percent Democratic")
     ax.axis([1, district_dim_x*district_dim_y, 0.48, 0.55])
 
-    #fig, ax1 = plt.subplots()
-    #plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
+    fig, ax1 = plt.subplots()
+    plt.imshow(percent_dem, cmap='RdBu', interpolation='nearest')
 
     ### RANDOM WITHOUT REPLACEMENT ###
 
